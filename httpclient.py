@@ -39,8 +39,13 @@ class HTTPClient(object):
     #def get_host_port(self,url):
 
     def connect(self, host, port):
-        # use sockets!
-        return None
+        ip = socket.gethostbyname(host)
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.connect((ip, port))
+
+        print "asdf"
+
+        return s
 
     def get_code(self, data):
         return None
@@ -64,10 +69,10 @@ class HTTPClient(object):
         return str(buffer)
 
     def parseUrl(self, url):
-        if not url.startswith("http://"):
-            url = "http://" + url
+        if url.startswith("http://"):
+            url = url[7:]
 
-        firstSlash = url.find('/', 7)
+        firstSlash = url.find('/')
         
         if firstSlash == -1:
             path = '/'
@@ -78,19 +83,26 @@ class HTTPClient(object):
 
         port = 80
 
-        firstColon = host.find(':', 7)
+        firstColon = host.find(':')
 
         if firstColon != -1:
-            port = host[firstColon + 1:]
+            port = int(host[firstColon + 1:])
             host = host[:firstColon]
 
-        return url, port, path
+        return host, port, path
 
     def GET(self, url, args=None):
         code = 500
         body = ""
 
-        url, port, path = self.parseUrl(url)
+        host, port, path = self.parseUrl(url)
+
+        sock = self.connect(host, port)
+
+        sock.sendAll("GET / HTTP/1.1\r\n\r\n")
+        body = self.recvall(sock)
+        
+
 
         return HTTPRequest(code, body)
 
