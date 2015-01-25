@@ -46,13 +46,29 @@ class HTTPClient(object):
         return s
 
     def get_code(self, data):
-        return None
+        code = 500
+        if data.startswith("HTTP/1."):
+            code = int(data[9:12])
+        return code
+
 
     def get_headers(self,data):
-        return None
+        headers = ""
+        headersEnd = data.find("\r\n\r\n")
+
+        if headersEnd != -1:
+            headers = data[:headersEnd]
+
+        return headers
 
     def get_body(self, data):
-        return None
+        body = ""
+        headersEnd = data.find("\r\n\r\n")
+
+        if headersEnd != -1:
+            body = data[headersEnd + 4:]
+
+        return body
 
     # read everything from the socket
     def recvall(self, sock):
@@ -117,14 +133,9 @@ class HTTPClient(object):
         sock.sendall(self.getRequestStr("GET", path, headers))
         sock.shutdown(socket.SHUT_WR)
 
-        body = self.recvall(sock)
-        if body.startswith("HTTP/1."):
-            code = int(body[9:12])
-
-        headersEnd = body.find("\r\n\r\n")
-
-        if headersEnd != -1:
-            body = body[headersEnd + 4:]
+        data = self.recvall(sock)
+        code = self.get_code(data)
+        body = self.get_body(data)
 
         sock.close()
         
