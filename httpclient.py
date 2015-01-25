@@ -43,8 +43,6 @@ class HTTPClient(object):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.connect((ip, port))
 
-        print "asdf"
-
         return s
 
     def get_code(self, data):
@@ -91,6 +89,17 @@ class HTTPClient(object):
 
         return host, port, path
 
+    def getRequestStr(self, command, path, headers):
+
+        request = command + " " + path + " " + "HTTP/1.1\r\n"
+
+        for header in headers.keys():
+            request += header + ": " + headers[header] + "\r\n"
+
+        request += "\r\n"
+
+        return request
+
     def GET(self, url, args=None):
         code = 500
         body = ""
@@ -99,11 +108,26 @@ class HTTPClient(object):
 
         sock = self.connect(host, port)
 
-        sock.sendAll("GET / HTTP/1.1\r\n\r\n")
+        headers = {
+            "User-Agent": "KBClient",
+            "Host": host,
+            "Accept": "*/*"
+        }
+
+        sock.sendall(self.getRequestStr("GET", path, headers))
+        sock.shutdown(socket.SHUT_WR)
+
         body = self.recvall(sock)
+        if body.startswith("HTTP/1."):
+            code = int(body[9:12])
+
+        headersEnd = body.find("\r\n\r\n")
+
+        if headersEnd != -1:
+            body = body[headersEnd + 4:]
+
+        sock.close()
         
-
-
         return HTTPRequest(code, body)
 
     def POST(self, url, args=None):
