@@ -32,6 +32,9 @@ class HTTPRequest(object):
         self.code = code
         self.body = body
 
+    def __str__(self):
+       return self.body
+
 class HTTPClient(object):
     #def get_host_port(self,url):
 
@@ -60,14 +63,43 @@ class HTTPClient(object):
                 done = not part
         return str(buffer)
 
+    def parseUrl(self, url):
+        if not url.startswith("http://"):
+            url = "http://" + url
+
+        firstSlash = url.find('/', 7)
+        
+        if firstSlash == -1:
+            path = '/'
+            host = url
+        else:
+            path = url[firstSlash:]
+            host = url[:firstSlash]
+
+        port = 80
+
+        firstColon = host.find(':', 7)
+
+        if firstColon != -1:
+            port = host[firstColon + 1:]
+            host = host[:firstColon]
+
+        return url, port, path
+
     def GET(self, url, args=None):
         code = 500
         body = ""
+
+        url, port, path = self.parseUrl(url)
+
         return HTTPRequest(code, body)
 
     def POST(self, url, args=None):
         code = 500
         body = ""
+
+        url, port, path = self.parseUrl(url)
+
         return HTTPRequest(code, body)
 
     def command(self, url, command="GET", args=None):
@@ -83,6 +115,6 @@ if __name__ == "__main__":
         help()
         sys.exit(1)
     elif (len(sys.argv) == 3):
-        print client.command( sys.argv[1], sys.argv[2] )
+        print client.command( sys.argv[2], sys.argv[1] )
     else:
         print client.command( command, sys.argv[1] )    
