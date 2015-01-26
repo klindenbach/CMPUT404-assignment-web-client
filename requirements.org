@@ -28,14 +28,14 @@
 
 ** Requirements
    - [X] Implement basic HTTP GET
-   - [ ] Implement basic HTTP POST
-   - [ ] The httpclient can pass all the tests in freetests.py
-   - [ ] The webserver can pass all the tests in not-free-tests.py
+   - [X] Implement basic HTTP POST
+   - [X] The httpclient can pass all the tests in freetests.py
+   - [X] The webserver can pass all the tests in not-free-tests.py
      (you don't have this one!)
-   - [ ] HTTP POST can post vars
-   - [ ] HTTP POST handles at least Content-Type:
+   - [X] HTTP POST can post vars
+   - [X] HTTP POST handles at least Content-Type:
      application/x-www-form-urlencoded
-   - [ ] httpclient can handle 404 requests and 200 requests
+   - [X] httpclient can handle 404 requests and 200 requests
 
 ** Restrictions
    - [X] Use Python 2.7
