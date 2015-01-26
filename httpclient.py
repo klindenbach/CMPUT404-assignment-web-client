@@ -145,13 +145,41 @@ class HTTPClient(object):
         code = 500
         body = ""
 
+        host, port, path = self.parseUrl(url)
+
+        sock = self.connect(host, port)
+
+
+        headers = {
+            "User-Agent": "KBClient",
+            "Host": host,
+            "Accept": "*/*",
+            "Content-Length": "0",
+            "Content-Type": "application/x-www-form-urlencoded"
+        }
+
+        variables = ""
+
+        if args:
+            variables = urllib.urlencode(args)
+            headers["Content-Length"] = str(len(variables))
+
+        sock.sendall(self.getRequestStr("POST", path, headers) + variables)
+        sock.shutdown(socket.SHUT_WR)
+
+        data = self.recvall(sock)
+        code = self.get_code(data)
+        body = self.get_body(data)
+
+        sock.close()
+
         url, port, path = self.parseUrl(url)
 
         return HTTPRequest(code, body)
 
     def command(self, url, command="GET", args=None):
-        if (command == "POST"):
-            return self.POST( url, args )
+        if (command == "POST"): 
+            return self.POST( url, args)
         else:
             return self.GET( url, args )
     
