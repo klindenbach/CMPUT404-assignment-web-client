@@ -33,16 +33,27 @@ class HTTPRequest(object):
         self.body = body
 
     def __str__(self):
-       return self.body
+        return self.body
 
 class HTTPClient(object):
     #def get_host_port(self,url):
 
     def connect(self, host, port):
-        ip = socket.gethostbyname(host)
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        try:
+            ip = socket.gethostbyname(host)
+        except socket.gaierror:
+            #could not resolve hostanme
+            print 'Hostname could not be resolved. Exiting'
+            sys.exit()
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        except socket.error, msg:
+            print 'Failed to create socket. Error code: ' + str(msg[0]) +\
+                   ' , Error message : ' + msg[1]
+            sys.exit();
+            
         s.connect((ip, port))
-
+           
         return s
 
     def get_code(self, data):
@@ -100,7 +111,14 @@ class HTTPClient(object):
         firstColon = host.find(':')
 
         if firstColon != -1:
-            port = int(host[firstColon + 1:])
+            try:
+                port = int(host[firstColon + 1:])
+            except ValueError:
+                print "Port is not a valid integer"
+                sys.exit()
+            if (port < 0) or (port > 65535):
+                print "Port is outside of allowable numbers"
+                sys.exit()
             host = host[:firstColon]
 
         return host, port, path
@@ -129,8 +147,12 @@ class HTTPClient(object):
             "Host": host,
             "Accept": "*/*"
         }
-
-        sock.sendall(self.getRequestStr("GET", path, headers))
+        try:
+            sock.sendall(self.getRequestStr("GET", path, headers))
+        except socket.error:
+            #sendall() failed
+            print "sendall() failed."
+            sys.exit()        
         sock.shutdown(socket.SHUT_WR)
 
         data = self.recvall(sock)
@@ -163,8 +185,14 @@ class HTTPClient(object):
         if args:
             variables = urllib.urlencode(args)
             headers["Content-Length"] = str(len(variables))
-
-        sock.sendall(self.getRequestStr("POST", path, headers) + variables)
+        
+        try:
+            sock.sendall(self.getRequestStr("POST", path, headers) + variables)
+        except socket.error:
+            #sendall() failed
+            print "sendall() failed."
+            sys.exit()
+            
         sock.shutdown(socket.SHUT_WR)
 
         data = self.recvall(sock)
