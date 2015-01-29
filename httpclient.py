@@ -206,10 +206,15 @@ class HTTPClient(object):
         return HTTPRequest(code, body)
 
     def command(self, url, command="GET", args=None):
-        if (command == "POST"): 
-            return self.POST( url, args)
-        else:
-            return self.GET( url, args )
+        #Going to wrap this whole thing to handle timeouts
+        try:
+            if (command == "POST"): 
+                return self.POST( url, args)
+            else:
+                return self.GET( url, args )
+        except socket.timeout:
+            print "Your request timed out."
+        
     
 if __name__ == "__main__":
     client = HTTPClient()
